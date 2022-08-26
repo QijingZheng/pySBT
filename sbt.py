@@ -67,7 +67,7 @@ class NumSBT(object):
         self.k_max = self.kk[-1]
         
         self.rr3 = self.rr**3
-        self.kk3 = self.rr**3
+        self.kk3 = self.kk**3
 
         # r values for the extended mesh as discussed in Sec.4 of Talman paper.
         self.rr_ext = self.r_min * np.exp(np.arange(-self.nr, 0) * self.drho)
@@ -131,15 +131,25 @@ class NumSBT(object):
         ).conj()[:,:self.nr+1]
 
     
-    def sbt_exec(self, ff, l: int=0, direction: int = 1, norm: bool=False, np_in: int =0):
+    def sbt_exec(self,
+            ff,
+            l: int=0,
+            direction: int = 1,
+            norm: bool=False,
+            np_in: int =0
+        ):
         '''
         Actually perform SBT or inverse-SBT.
         '''
 
-        ff     = np.asarray(ff, dtype=float)
-        gg     = np.zeros_like(ff)
-        r2c_in = np.zeros(self.nr2, dtype=float)
-        c2r_in = np.zeros(self.nr + 1, dtype=complex)
+        ff      = np.asarray(ff, dtype=float)
+        gg      = np.zeros_like(ff)
+
+        r2c_in  = np.zeros(self.nr2, dtype=float)
+        r2c_out = np.zeros(self.nr + 1, dtype=complex)
+
+        c2r_in  = np.zeros(self.nr + 1, dtype=complex)
+        c2r_out = np.zeros(self.nr2, dtype=float)
 
         # The prefactor as in Eq. (c1) and (c2) of the Class docstring.
         if norm:
@@ -173,7 +183,7 @@ class NumSBT(object):
         tmp1[:self.nr] = r2c_out[:self.nr].conj() * self.M_lt1[l]
 
         # Step 4 and 5 in the procedure after Eq. (32) of Talman paper
-        tmp2 = ifft(tmp1)
+        tmp2 = ifft(tmp1) * self.nr2
         gg   = (rmin / kmin)**1.5 * tmp2[self.nr:].real * self.post_div_fac * norm_fac
 
         # obtain the SMALL k results in the array c2r_out
@@ -185,15 +195,15 @@ class NumSBT(object):
         r2c_in[self.nr:] = 0.0
         r2c_out = rfft(r2c_in)
 
-        c2r_in             = r2c_out.conj() * self.M_lt2[l]
-        c2r_out            = irfft(c2r_in)
+        c2r_in             = r2c_out.conj() * self.M_lt2[l] * norm_fac
+        c2r_out            = irfft(c2r_in) * self.nr2
         c2r_out[:self.nr] *= self.drho
 
         # compare the minimum difference between large and small k as described
         # in the paragraph above Eq. (39) of Talman paper.
         gdiff       = np.abs(gg - c2r_out[:self.nr])
         minloc      = np.argmin(gdiff)
-        gg[:minloc] = c2r_out[:minloc]
+        gg[:minloc+1] = c2r_out[:minloc+1]
 
         if direction == 1:
             return self.rr, gg
@@ -212,10 +222,9 @@ if __name__ == "__main__":
 
     xx = NumSBT(rr)
 
-    _, g1 = xx.sbt_exec(f1, direction=1)
-    _, f2 = xx.sbt_exec(g1, direction=-1)
+    _, g1 = xx.sbt_exec(f1, direction=1, norm=True)
+    _, f2 = xx.sbt_exec(g1, direction=-1, norm=True)
 
-    np.savetxt('kaka.dat', np.c_[rr, f1, f2])
 
     import matplotlib.pyplot as plt
 
@@ -224,8 +233,8 @@ if __name__ == "__main__":
     )
     ax = plt.subplot()
 
-    ax.plot(rr, f1 / 2)
-    ax.plot(rr, f2 / f2[0])
+    ax.plot(rr, f1)
+    ax.plot(rr, f2, ls='--')
 
     ax.set_xlabel('X-label', labelpad=5)
     ax.set_ylabel('Y-label', labelpad=5)
