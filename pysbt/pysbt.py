@@ -133,7 +133,7 @@ class pyNumSBT(object):
         ).conj()[:,:self.nr+1]
 
     
-    def run_sbt(self,
+    def run(self,
             ff,
             l: int=0,
             direction: int = 1,
