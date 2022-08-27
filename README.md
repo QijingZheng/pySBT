@@ -4,3 +4,11 @@ A python implementation of spherical Bessel transform (SBT) in O(Nlog(N)) time b
 
 > "NumSBT: A subroutine for calculating spherical Bessel transforms numerically"
 > [Talman, J. Computer Physics Communications 2009, 180, 332-338.](https://www.sciencedirect.com/science/article/pii/S0010465508003329)
+
+## Installation
+
+To install pySBT using pip run:
+
+```bash
+pip install https://github.com/QijingZheng/pySBT
+```
