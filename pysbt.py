@@ -2,14 +2,14 @@
 
 import numpy as np
 from scipy.special import gamma, spherical_jn
-from scipy.fft import fft, ifft, rfft, irfft
+from scipy.fft import ifft, rfft, irfft
 
 # usefull constants
 PI  = np.pi
 TPI = 2.0 * np.pi
 II  = 1.0j
 
-class NumSBT(object):
+class pyNumSBT(object):
     '''
     Numerically perform spherical Bessel transform (SBT) in O(Nln(N)) time based
     on the algorithm proposed by J. Talman.
@@ -25,6 +25,7 @@ class NumSBT(object):
     
         f(r) = \sqrt{2\over\pi} \int_0^\infty j_l(kr) g(k) k^2 dk           (c2)
     '''
+
     def __init__(self, rr, kmax: float=500, lmax: int=10):
         '''
         Init
@@ -58,10 +59,10 @@ class NumSBT(object):
         # \Delta\rho = \ln(rr[1] - rr[0])
         self.drho    = (self.rho_max - self.rho_min) / (self.nr - 1)
 
-        # the reciprocal-space (momentum-space) logarithmic grid
         self.kappa_max = np.log(kmax)
         self.kappa_min = self.kappa_max - (self.rho_max - self.rho_min)
 
+        # the reciprocal-space (momentum-space) logarithmic grid
         self.kk    = np.exp(self.kappa_min) * np.exp(np.arange(self.nr)*self.drho)
         self.k_min = self.kk[0]
         self.k_max = self.kk[-1]
@@ -98,6 +99,7 @@ class NumSBT(object):
         
         if lmax_in > self.lmax:
             lmax = lmax_in
+            self.lmax = lmax
         else:
             lmax = self.lmax
 
@@ -131,19 +133,35 @@ class NumSBT(object):
         ).conj()[:,:self.nr+1]
 
     
-    def sbt_exec(self,
+    def run_sbt(self,
             ff,
             l: int=0,
             direction: int = 1,
             norm: bool=False,
-            np_in: int =0
+            np_in: int =0,
+            return_rr: bool=False,
         ):
         '''
-        Actually perform SBT or inverse-SBT.
+        Perform SBT or inverse-SBT.
+        
+        Input parapeters:
+        ff: the function defined on the logarithmic radial grid
+        l: the "l" as in the underscript of "j_l(kr)" of Eq. (c1) and (c2)
+        direction: 1 for forward SBT and -1 for inverse SBT
+        norm: whether to multiply the prefactor \sqrt{2\over\pi} in Eq. (c1) and (c2).
+              If False, then subsequent applicaton of SBT and iSBT will yield
+              the original data scaled by a factor of 2/pi.
+        np_in: the asymptotic bahavior of ff when  r -> 0
+
+               ff(r\to 0) \approx r^{np_in + l}
         '''
 
-        ff      = np.asarray(ff, dtype=float)
-        gg      = np.zeros_like(ff)
+        assert l <= self.lmax, \
+               "lmax = {} smaller than l = {}! Increase lmax!".format(self.lmax, l)
+        
+
+        ff = np.asarray(ff, dtype=float)
+        gg = np.zeros_like(ff)
 
         r2c_in  = np.zeros(self.nr2, dtype=float)
         r2c_out = np.zeros(self.nr + 1, dtype=complex)
@@ -152,10 +170,7 @@ class NumSBT(object):
         c2r_out = np.zeros(self.nr2, dtype=float)
 
         # The prefactor as in Eq. (c1) and (c2) of the Class docstring.
-        if norm:
-            norm_fac = np.sqrt(2 / PI)
-        else:
-            norm_fac = 1.0
+        sqrt_2_over_pi = np.sqrt(2 / PI) if norm else 1.0
 
         if direction == 1:
             rmin = self.r_min
@@ -184,7 +199,7 @@ class NumSBT(object):
 
         # Step 4 and 5 in the procedure after Eq. (32) of Talman paper
         tmp2 = ifft(tmp1) * self.nr2
-        gg   = (rmin / kmin)**1.5 * tmp2[self.nr:].real * self.post_div_fac * norm_fac
+        gg   = (rmin / kmin)**1.5 * tmp2[self.nr:].real * self.post_div_fac * sqrt_2_over_pi
 
         # obtain the SMALL k results in the array c2r_out
 
@@ -195,7 +210,7 @@ class NumSBT(object):
         r2c_in[self.nr:] = 0.0
         r2c_out = rfft(r2c_in)
 
-        c2r_in             = r2c_out.conj() * self.M_lt2[l] * norm_fac
+        c2r_in             = r2c_out.conj() * self.M_lt2[l] * sqrt_2_over_pi
         c2r_out            = irfft(c2r_in) * self.nr2
         c2r_out[:self.nr] *= self.drho
 
@@ -205,12 +220,15 @@ class NumSBT(object):
         minloc      = np.argmin(gdiff)
         gg[:minloc+1] = c2r_out[:minloc+1]
 
-        if direction == 1:
-            return self.rr, gg
+        if  return_rr:
+            if direction == 1:
+                return self.rr, gg 
+            else:
+                return self.kk, gg
         else:
-            return self.kk, gg
+            return gg
     
-    def sbt_interp(self):
+    def sbt_interp(self, ):
         pass
 
 if __name__ == "__main__":
@@ -220,10 +238,10 @@ if __name__ == "__main__":
     rr   = np.logspace(np.log10(rmin), np.log10(rmax), N, endpoint=True)
     f1   = 2*np.exp(-rr)
 
-    xx = NumSBT(rr)
+    xx = pyNumSBT(rr)
 
-    _, g1 = xx.sbt_exec(f1, direction=1, norm=True)
-    _, f2 = xx.sbt_exec(g1, direction=-1, norm=True)
+    g1 = xx.run_sbt(f1, direction=1, norm=False)
+    f2 = xx.run_sbt(g1 * g1, direction=-1, norm=False)
 
 
     import matplotlib.pyplot as plt
@@ -233,13 +251,12 @@ if __name__ == "__main__":
     )
     ax = plt.subplot()
 
-    ax.plot(rr, f1)
-    ax.plot(rr, f2, ls='--')
+    # ax.plot(rr, f1)
+    ax.plot(rr, f2 * 2 / np.pi, ls='-')
+    ax.plot(rr, np.exp(-rr) * (1 + rr + rr**2 / 3), ls='--')
 
     ax.set_xlabel('X-label', labelpad=5)
     ax.set_ylabel('Y-label', labelpad=5)
 
     plt.tight_layout()
     plt.show()
-
-
