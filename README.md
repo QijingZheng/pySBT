@@ -43,6 +43,6 @@ pip install https://github.com/QijingZheng/pySBT
   g1 = ss.run(f1, direction=1, norm=False)            # SBT
   ```
   
-  ![example 2](examples/ex2.svg)
+  ![example 1](examples/ex1.svg)
 
-  The full code can be found in [examples/ex2.py](examples/ex2.py).
+  The full code can be found in [examples/ex1.py](examples/ex1.py).
