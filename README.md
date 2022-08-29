@@ -19,3 +19,30 @@ To install pySBT using pip run:
 ```bash
 pip install https://github.com/QijingZheng/pySBT
 ```
+
+## Examples
+
+- The example shows the the SBT of an exponential decaying function f(r).
+
+  ![Eq (eq2)](img/exp_sbt.svg)
+  
+  ```python
+  #!/usr/bin/env python
+  
+  import numpy as np
+  from pysbt import sbt
+  
+  N    = 256
+  rmin = 2.0 / 1024 / 32
+  rmax = 30
+  rr   = np.logspace(np.log10(rmin), np.log10(rmax), N, endpoint=True)
+  beta = 2
+  f1   = 0.5*beta**3 *np.exp(-beta*rr)
+  
+  ss = sbt(rr)                                        # init SBT
+  g1 = ss.run(f1, direction=1, norm=False)            # SBT
+  ```
+  
+  ![example 2](examples/ex2.svg)
+
+  The full code can be found in [examples/ex2.py](examples/ex2.py).
