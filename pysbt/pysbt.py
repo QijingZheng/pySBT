@@ -227,9 +227,6 @@ class pyNumSBT(object):
                 return self.kk, gg
         else:
             return gg
-    
-    def sbt_interp(self, ):
-        pass
 
 if __name__ == "__main__":
     N    = 256
@@ -240,8 +237,8 @@ if __name__ == "__main__":
 
     xx = pyNumSBT(rr)
 
-    g1 = xx.run_sbt(f1, direction=1, norm=False)
-    f2 = xx.run_sbt(g1 * g1, direction=-1, norm=False)
+    g1 = xx.run(f1, direction=1, norm=False)
+    f2 = xx.run(g1 * g1, direction=-1, norm=False)
 
 
     import matplotlib.pyplot as plt
