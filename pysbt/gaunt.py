@@ -620,6 +620,36 @@ def uniq_perm(l1, l2, l3, m1, m2, m3):
     return l4, l5, l6, m4, m5, m6
 
     
+def gaunt_c2r(l1, l2, l3, m1, m2, m3):
+    """
+    Convert Gaunt coefficients defined on complex SPH to Gaunt coefficients on
+    real SPH.
+    """
+
+    SQRT2 = np.sqrt(2.0)
+    U = []
+    M = []
+    for m in [m1, m2, m3]:
+      if m < 0:
+        U.append([1j/SQRT2, -(-1)**(-m) * 1j/SQRT2])
+        M.append([m, -m])
+      elif m > 0:
+        U.append([1/SQRT2,  (-1)**m /SQRT2])
+        M.append([-m, m])
+      else:
+        U.append([1,])
+        M.append([0,])
+
+    U  = np.prod(
+            np.array(np.meshgrid(U[0], U[1], U[2])).reshape((3, -1)).T,
+            axis=1)
+    M  = np.array(np.meshgrid(M[0], M[1], M[2])).reshape((3, -1)).T
+    g1 = np.array([float(sp.N(gaunt(l1, l2, l3, *m))) for m in M])
+    g2 = np.sum(U * g1)
+
+    return g2
+
+
 def GauntTable(l1=0, l2=0, l3=0, m1=0, m2=0, m3=0, real=True):
     """
     Get Gaunt coefficients from the pre-calculated table.
@@ -657,29 +687,40 @@ def GauntTable(l1=0, l2=0, l3=0, m1=0, m2=0, m3=0, real=True):
 
 
 if __name__ == "__main__":
-    for k, v in GAUNT_COEFF_DATA2.items():
-        # l1, l2, l3, m1, m2, m3 = np.fromstring(k[1:-1], sep=',')
-        l1, l2, l3, m1, m2, m3 = k
-        if (l1 + l2 + l3) % 2 != 0:
-            print(k)
-        a, b, c = sorted([l1, l2, l3])
-        if a + b < c:
-            print(k)
-        if (m1 + m2 + m3) != 0:
-            print(k)
-    print(
-        GauntTable(4, 3, 1, 2, 3, 1),
-        GauntTable(3, 1, 4, 3, 1, 2),
-        GauntTable(1, 4, 3, 1, 2, 3),
-        GauntTable(3, 4, 1, 3, 2, 1),
-        GauntTable(4, 1, 3, 2, 1, 3),
-        GauntTable(1, 3, 4, 1, 3, 2),
-    )
-    print(
-        GauntTable(4, 3, 1, 2,-3, 1, real=False),
-        GauntTable(3, 1, 4,-3, 1, 2, real=False),
-        GauntTable(1, 4, 3, 1, 2,-3, real=False),
-        GauntTable(3, 4, 1,-3, 2, 1, real=False),
-        GauntTable(4, 1, 3, 2, 1,-3, real=False),
-        GauntTable(1, 3, 4, 1,-3, 2, real=False),
-    )
+    import sympy as sp
+    from sympy.physics.wigner import gaunt
+
+    # for k, v in GAUNT_COEFF_DATA2.items():
+    #     # l1, l2, l3, m1, m2, m3 = np.fromstring(k[1:-1], sep=',')
+    #     l1, l2, l3, m1, m2, m3 = k
+    #     if (l1 + l2 + l3) % 2 != 0:
+    #         print(k)
+    #     a, b, c = sorted([l1, l2, l3])
+    #     if a + b < c:
+    #         print(k)
+    #     if (m1 + m2 + m3) != 0:
+    #         print(k)
+
+    print('Gaunt coefficients from complex SPH:')
+    print(GauntTable(4, 3, 1, 2,-3, 1, real=False), sp.N(gaunt(4, 3, 1, 2,-3, 1)))
+    print(GauntTable(3, 1, 4,-3, 1, 2, real=False), sp.N(gaunt(3, 1, 4,-3, 1, 2)))
+    print(GauntTable(1, 4, 3, 1, 2,-3, real=False), sp.N(gaunt(1, 4, 3, 1, 2,-3)))
+    print(GauntTable(3, 4, 1,-3, 2, 1, real=False), sp.N(gaunt(3, 4, 1,-3, 2, 1)))
+    print(GauntTable(4, 1, 3, 2, 1,-3, real=False), sp.N(gaunt(4, 1, 3, 2, 1,-3)))
+    print(GauntTable(1, 3, 4, 1,-3, 2, real=False), sp.N(gaunt(1, 3, 4, 1,-3, 2)))
+
+    print('Gaunt coefficients from real SPH:')
+    print(GauntTable(4, 3, 1,-2,-3,-1), GauntTable(4, 3, 1, 2, 3, 1))
+    print(GauntTable(3, 1, 4,-3,-1,-2), GauntTable(3, 1, 4, 3, 1, 2))
+    print(GauntTable(1, 4, 3,-1,-2,-3), GauntTable(1, 4, 3, 1, 2, 3))
+    print(GauntTable(3, 4, 1,-3,-2,-1), GauntTable(3, 4, 1, 3, 2, 1))
+    print(GauntTable(4, 1, 3,-2,-1,-3), GauntTable(4, 1, 3, 2, 1, 3))
+    print(GauntTable(1, 3, 4,-1,-3,-2), GauntTable(1, 3, 4, 1, 3, 2))
+
+    print('Gaunt coefficients from real SPH:')
+    print(gaunt_c2r(4, 3, 1, 2, 3, 1), GauntTable(4, 3, 1, 2, 3, 1))
+    print(gaunt_c2r(3, 1, 4, 3, 1, 2), GauntTable(3, 1, 4, 3, 1, 2))
+    print(gaunt_c2r(1, 4, 3, 1, 2, 3), GauntTable(1, 4, 3, 1, 2, 3))
+    print(gaunt_c2r(3, 4, 1, 3, 2, 1), GauntTable(3, 4, 1, 3, 2, 1))
+    print(gaunt_c2r(4, 1, 3, 2, 1, 3), GauntTable(4, 1, 3, 2, 1, 3))
+    print(gaunt_c2r(1, 3, 4, 1, 3, 2), GauntTable(1, 3, 4, 1, 3, 2))
