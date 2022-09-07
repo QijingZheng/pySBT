@@ -22,7 +22,7 @@ g1 = [
 import matplotlib as mpl
 mpl.rcParams['axes.unicode_minus'] = False
 import matplotlib.pyplot as plt
-plt.style.use('ggplot')
+plt.style.use('seaborn')
 
 prop_cycle = plt.rcParams['axes.prop_cycle']
 cc         = prop_cycle.by_key()['color']
@@ -31,30 +31,31 @@ cc         = prop_cycle.by_key()['color']
 fig, axes = plt.subplots(
     nrows=nproj_l, ncols=2,
     dpi=300,
-    figsize=(7.2, 6.4)
+    figsize=(7.2, 9.0)
 )
 
 for ii in range(nproj_l):
     axes[ii,0].plot(
         mo_pot.proj_rgrid, mo_pot.rprojs[ii],
         ls='none', marker='o', mew=0.5, mfc='w', ms=4, color=cc[ii], 
-        label='vasp')
+        label='POTCAR')
     axes[ii,0].plot(rr, f1[ii], ls='-', lw=1.0, color=cc[ii],
         label=f'interp')
         # label=f'$\ell = {mo_pot.proj_l[ii]}$')
 
-    # axes[ii,0].set_ylabel(f'$f_{mo_pot.proj_l[ii]}(r)$')
-    axes[ii,0].legend(loc='upper right', fontsize='small')
+    axes[ii,0].set_ylabel(f'$f_{mo_pot.proj_l[ii]}(r)$')
+    axes[ii,0].legend(loc='best', fontsize='small')
 
     axes[ii,1].plot(
         mo_pot.proj_qgrid, mo_pot.qprojs[ii],
         ls='none', marker='o', mew=0.5, mfc='w', ms=4, color=cc[ii],
-        label='vasp')
+        label='POTCAR')
     axes[ii,1].plot(ss.kk, g1[ii], ls='-', lw=1.0, color=cc[ii],
         label=f'pysbt')
         # label=f'$\ell = {mo_pot.proj_l[ii]}$')
 
-    axes[ii,1].legend(loc='upper right', fontsize='small')
+    axes[ii,1].set_ylabel(f'$g_{mo_pot.proj_l[ii]}(q)$')
+    axes[ii,1].legend(loc='best', fontsize='small')
 
     axes[ii,1].set_xlim(-0.05 * mo_pot.proj_gmax, 1.05 * mo_pot.proj_gmax)
 
@@ -62,17 +63,17 @@ for ii in range(nproj_l):
         axes[ii,0].set_xticklabels([])
         axes[ii,1].set_xticklabels([])
 
-    for ax in axes[ii]:
-        ax.text(0.05, 0.90, f'$\ell = {mo_pot.proj_l[ii]}$',
-                ha="left",
-                va="top",
-                fontsize='small',
-                # family='monospace',
-                # fontweight='bold'
-                transform=ax.transAxes,
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.4)
-        )
-        
+    # for ax in axes[ii]:
+    #     ax.text(0.05, 0.90, f'$\ell = {mo_pot.proj_l[ii]}$',
+    #             ha="left",
+    #             va="top",
+    #             fontsize='small',
+    #             # family='monospace',
+    #             # fontweight='bold'
+    #             transform=ax.transAxes,
+    #             bbox=dict(boxstyle='round', facecolor='white', alpha=0.4)
+    #     )
+    #     
 
 axes[-1, 0].set_xlabel(r'$r$ [$\AA$]', labelpad=5)
 axes[-1, 1].set_xlabel(r'$q$ [$\AA^{-1}$]', labelpad=5)
