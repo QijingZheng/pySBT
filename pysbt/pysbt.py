@@ -103,7 +103,7 @@ class pyNumSBT(object):
         else:
             lmax = self.lmax
 
-        tt    = np.arange(self.nr) * self.dt
+        tt = np.arange(self.nr) * self.dt
 
         # M_lt1 is quantity defined by Eq. (12)
         self.M_lt1 = np.zeros((lmax+1, self.nr), dtype=complex)
@@ -114,12 +114,12 @@ class pyNumSBT(object):
         self.M_lt1[0]   *= np.exp(II*tt*(self.kappa_min + self.rho_min))
 
         # Eq. (16) in Talman paper
-        phi         = np.arctan(np.tanh(PI*tt/2)) - np.arctan(2*tt)
-        self.M_lt1[1]   *= np.exp(2*II*phi)
+        phi           = np.arctan(np.tanh(PI*tt/2)) - np.arctan(2*tt)
+        self.M_lt1[1] = self.M_lt1[0] * np.exp(2*II*phi)
 
         # Eq. (24) in Talman paper
         for ll in range(1, lmax):
-            phi_l      = np.arctan(2*tt / (2*ll + 1))
+            phi_l            = np.arctan(2*tt / (2*ll + 1))
             self.M_lt1[ll+1] = np.exp(-2*II*phi_l) * self.M_lt1[ll-1]
 
         ll = np.arange(lmax+1)
@@ -216,8 +216,8 @@ class pyNumSBT(object):
 
         # compare the minimum difference between large and small k as described
         # in the paragraph above Eq. (39) of Talman paper.
-        gdiff       = np.abs(gg - c2r_out[:self.nr])
-        minloc      = np.argmin(gdiff)
+        gdiff         = np.abs(gg - c2r_out[:self.nr])
+        minloc        = np.argmin(gdiff)
         gg[:minloc+1] = c2r_out[:minloc+1]
 
         if  return_rr:
