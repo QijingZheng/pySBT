@@ -67,7 +67,7 @@ pip install https://github.com/QijingZheng/pySBT
   See
   [doc/overlap_integral.pdf](doc/overlap_integral.pdf)
   or
-  [this post](https://qijingzheng.github.io//posts/Overlap-Integral-in-Momentum-Space/)
+  [this post](https://qijingzheng.github.io/posts/Overlap-Integral-in-Momentum-Space/)
   for details.
 
   ```python
