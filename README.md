@@ -64,6 +64,12 @@ pip install https://github.com/QijingZheng/pySBT
 
   ![overlap integral of hydrogen 1s orbitals](img/s10.svg)
 
+  See
+  [doc/overlap_integral.pdf](doc/overlap_integral.pdf)
+  or
+  [this post](https://qijingzheng.github.io//posts/Overlap-Integral-in-Momentum-Space/)
+  for details.
+
   ```python
   #!/usr/bin/env python
   
