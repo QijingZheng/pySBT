@@ -47,14 +47,14 @@ pip install https://github.com/QijingZheng/pySBT
 
   The full code can be found in [examples/ex1.py](examples/ex1.py).
 
-- Overlap integral of molecular orbitals.  Suppose \psi_{lm}(r) is a molecular
-  orbital composed of radial part R_{l,m}(r) and angular part Y_{lm}(\theta,
-  \phi), then the overlap integral of two molecular orbitals can be written as
+- Overlap integral of atomic orbitals.  Suppose \psi_{lm}(r) is a atomic orbital
+  composed of radial part R_{l,m}(r) and angular part Y_{lm}(\theta, \phi), then
+  the overlap integral of two atomic orbitals can be written as
 
   ![overlap integral](img/overlap_integral.svg)
 
   where G is the Gaunt coefficients and g_{l1} and g_{l2} are the SBT of the two
-  molecular orbitals, respectively. The above formula shows that the overlap
+  atomic orbitals, respectively. The above formula shows that the overlap
   integral can be obtained by inverse-SBT of g_{l1} * g_{l2}. For hydrogen 1s
   orbital
 
