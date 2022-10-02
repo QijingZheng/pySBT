@@ -88,6 +88,26 @@ class pyNumSBT(object):
         # omit the r_min^1.5 / k_min^1.5 here.
         self.post_div_fac = np.exp(-np.arange(self.nr)*self.drho*1.5)
 
+        # Simpson integration of a function on the logarithmic radial grid.
+        #
+        # Setup weights for simpson integration on radial grid any radial integral
+        # can then be evaluated by just summing all radial grid points with the
+        # weights SI
+        #
+        # \int dr = \sum_i w(i) * f(i)
+        self.simp_wht_rr = np.zeros_like(self.rr)
+        self.simp_wht_kk = np.zeros_like(self.kk)
+        for ii in range(self.nr-1, 1, -2):
+            self.simp_wht_rr[ii]   = self.drho * self.rr[ii] / 3. \
+                                   + self.simp_wht_rr[ii]
+            self.simp_wht_rr[ii-1] = self.drho * self.rr[ii-1] * 4. / 3.
+            self.simp_wht_rr[ii-2] = self.drho * self.rr[ii-2] / 3.
+
+            self.simp_wht_kk[ii]   = self.drho * self.kk[ii] / 3. \
+                                   + self.simp_wht_kk[ii]
+            self.simp_wht_kk[ii-1] = self.drho * self.kk[ii-1] * 4. / 3.
+            self.simp_wht_kk[ii-2] = self.drho * self.kk[ii-2] / 3.
+
     def sbt_mltb(self, lmax_in: int):
         '''
         construct the M_l(t) table according to Eq. (15), (16) and (24) of
@@ -140,6 +160,7 @@ class pyNumSBT(object):
             norm: bool=False,
             np_in: int =0,
             return_rr: bool=False,
+            include_zero: bool=False,
         ):
         '''
         Perform SBT or inverse-SBT.
@@ -154,6 +175,7 @@ class pyNumSBT(object):
         np_in: the asymptotic bahavior of ff when  r -> 0
 
                ff(r\to 0) \approx r^{np_in + l}
+        include_zero: the SBT does not include the k = 0, i.e. self.kk.min() != 0, term by default. 
         '''
 
         assert l <= self.lmax, \
@@ -220,13 +242,24 @@ class pyNumSBT(object):
         minloc        = np.argmin(gdiff)
         gg[:minloc+1] = c2r_out[:minloc+1]
 
-        if  return_rr:
+        # include k = 0 in the SBT and r = 0 in the i-SBT.
+        if include_zero:
             if direction == 1:
-                return self.rr, gg 
+                gg0 = sqrt_2_over_pi * spherical_jn(l, 0) * np.sum(
+                          self.simp_wht_rr * self.rr**2 * ff
+                      )
             else:
-                return self.kk, gg
+                gg0 = sqrt_2_over_pi * spherical_jn(l, 0) * np.sum(
+                          self.simp_wht_kk * self.kk**2 * ff
+                      )
+
+        if return_rr:
+            if direction == 1:
+                return (np.r_[0, self.kk], np.r_[gg0, gg]) if include_zero else (self.kk, gg)
+            else:
+                return (np.r_[0, self.rr], np.r_[gg0, gg]) if include_zero else (self.rr, gg)
         else:
-            return gg
+            return np.r_[gg0, gg] if include_zero else gg
 
 if __name__ == "__main__":
     N    = 256
