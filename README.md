@@ -118,14 +118,19 @@ pip install https://github.com/QijingZheng/pySBT
   ![S10 numeric](examples/pysbt_s10.svg)
   
 - As is well know, VASP POTCAR contains the information of the projector
-  functions, both in real and reciprocal space. The example below first
-  interpolates the real-space projector functions on a *logarithmic* radial grid
-  and then performs SBT on the resulting real-space projector functions, finally
-  compares the results with the reciprocal-space projector functions stored in
-  POTCAR. 
+  functions of the PAW method, both in real and reciprocal space. The example
+  below first interpolates the real-space projector functions on a *logarithmic*
+  radial grid and then performs SBT on the resulting real-space projector
+  functions, finally compares the results with the reciprocal-space projector
+  functions stored in POTCAR. 
 
-  Note that when performing SBT on real-space projectors, VASP multiplies a
-  prefactor of 4pi.
+  > Note that when performing SBT on real-space projectors, VASP multiplies a
+  > prefactor of 4pi.
+
+  Refer to 
+  [this post](https://qijingzheng.github.io/posts/VASP-All-Electron-WFC/)
+  for more details of VASP PAW projector functions and an example of VASP
+  all-electron wavefunction construction.
 
   ```python
   #!/usr/bin/env python
