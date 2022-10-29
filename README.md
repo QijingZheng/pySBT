@@ -47,6 +47,16 @@ pip install https://github.com/QijingZheng/pySBT
 
   The full code can be found in [examples/ex1.py](examples/ex1.py).
 
+  One can also show that SBT by direct numerical integration deviates from the
+  correct result at large k.
+
+  ```python
+  ss = sbt(rr)                                        # init SBT
+  g1 = ss.run_int(f1, direction=1, norm=False)        # SBT by numerical integration
+  ```
+
+  ![example 1](examples/ex1_int.svg)
+
 - Overlap integral of atomic orbitals.  Suppose \psi_{lm}(r) is a atomic orbital
   composed of radial part R_{l,m}(r) and angular part Y_{lm}(\theta, \phi), then
   the overlap integral of two atomic orbitals can be written as
