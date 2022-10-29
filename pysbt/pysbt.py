@@ -261,6 +261,67 @@ class pyNumSBT(object):
         else:
             return np.r_[gg0, gg] if include_zero else gg
 
+
+    def run_int(self,
+            ff,
+            l: int=0,
+            direction: int = 1,
+            norm: bool=False,
+            return_rr: bool=False,
+            include_zero: bool=False,
+        ):
+        '''
+        Perform SBT or inverse-SBT by numerically integrating Eq. (c1) and (c2).
+        
+        Input parapeters:
+        ff: the function defined on the logarithmic radial grid
+        l: the "l" as in the underscript of "j_l(kr)" of Eq. (c1) and (c2)
+        direction: 1 for forward SBT and -1 for inverse SBT
+        norm: whether to multiply the prefactor \sqrt{2\over\pi} in Eq. (c1) and (c2).
+              If False, then subsequent applicaton of SBT and iSBT will yield
+              the original data scaled by a factor of 2/pi.
+        include_zero: the SBT does not include the k = 0, i.e. self.kk.min() != 0, term by default. 
+        '''
+
+        kr    = self.rr[:,None] * self.kk[None,:]
+        jl_kr = spherical_jn(l, kr)
+        ff    = np.asarray(ff, dtype=float)
+
+        # The prefactor as in Eq. (c1) and (c2) of the Class docstring.
+        sqrt_2_over_pi = np.sqrt(2 / PI) if norm else 1.0
+
+        if direction == 1:
+            gg = sqrt_2_over_pi * np.sum(
+                jl_kr * (self.rr**2 * ff * self.simp_wht_rr)[:,None],
+                axis=0
+            )
+            # include k = 0 in the SBT and r = 0 in the i-SBT.
+            if include_zero:
+                gg0 = sqrt_2_over_pi * spherical_jn(l, 0) * np.sum(
+                          self.simp_wht_rr * self.rr**2 * ff
+                      )
+        elif direction == -1:
+            gg = sqrt_2_over_pi * np.sum(
+                jl_kr * (self.kk**2 * ff * self.simp_wht_kk)[None,:],
+                axis=1
+            )
+            # include k = 0 in the SBT and r = 0 in the i-SBT.
+            if include_zero:
+                gg0 = sqrt_2_over_pi * spherical_jn(l, 0) * np.sum(
+                          self.simp_wht_kk * self.kk**2 * ff
+                      )
+        else:
+            raise ValueError("Use direction=1/-1 for forward- and inverse-SBT!")
+
+        if return_rr:
+            if direction == 1:
+                return (np.r_[0, self.kk], np.r_[gg0, gg]) if include_zero else (self.kk, gg)
+            else:
+                return (np.r_[0, self.rr], np.r_[gg0, gg]) if include_zero else (self.rr, gg)
+        else:
+            return np.r_[gg0, gg] if include_zero else gg
+
+
 if __name__ == "__main__":
     N    = 256
     rmin = 2.0 / 1024 / 32
