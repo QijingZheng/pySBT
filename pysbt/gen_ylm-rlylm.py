@@ -27,5 +27,5 @@ for l1 in range(lmax+1):
                 ii = l1**2 + l1 + m1
                 jj = l2**2 + l2 + m2
                 if not np.allclose(nij[ii,jj], 0):
-                    print(f'  ({l1}, {m1:2d}, {l2}, {m2:2d}): [{nij[ii,jj,0]}, {nij[ii,jj,1]}, {nij[ii,jj,2]}]')
+                    print(f'  ({l1}, {m1:2d}, {l2}, {m2:2d}): [{nij[ii,jj,0]}, {nij[ii,jj,1]}, {nij[ii,jj,2]}],')
 print('}')
