@@ -17,7 +17,7 @@ For a function f(r) defined on the *logarithmic* radial grid, the spherical Bess
 To install pySBT using pip run:
 
 ```bash
-pip install https://github.com/QijingZheng/pySBT
+pip install git+https://github.com/QijingZheng/pySBT
 ```
 
 ## Examples
