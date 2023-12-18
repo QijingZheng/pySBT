@@ -129,7 +129,18 @@ class pyNumSBT(object):
         self.M_lt1 = np.zeros((lmax+1, self.nr), dtype=complex)
 
         # Eq. (15) in Talman paper
-        self.M_lt1[0]    = gamma(0.5 - II*tt) * np.sin(0.5*PI*(0.5 - II*tt)) / self.nr
+        # self.M_lt1[0]    = gamma(0.5 - II*tt) * np.sin(0.5*PI*(0.5 - II*tt)) / self.nr
+
+        # Eq. (19) and Eq. (15) in Talman paper are equivalent, while the former
+        # is more stable for larger tt
+        self.M_lt1[0] = np.sqrt(np.pi / 2) * np.exp(
+            II * (
+                np.log(gamma(0.5 - II*tt)).imag
+                # + np.log(np.sin(0.5*PI*(0.5 - II*tt))).imag
+                - np.arctan(np.tanh(PI*tt/2))
+            )
+        ) / self.nr
+
         self.M_lt1[0,0] /= 2.0
         self.M_lt1[0]   *= np.exp(II*tt*(self.kappa_min + self.rho_min))
 
